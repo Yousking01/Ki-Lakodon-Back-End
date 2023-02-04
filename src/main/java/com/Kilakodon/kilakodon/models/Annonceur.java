@@ -35,11 +35,11 @@ public class Annonceur extends Utilisateur{
             cascade = CascadeType.ALL,
             fetch = FetchType.LAZY)
     @JoinColumn(name = "annonceur_id")
-    private List<EspacePub> espacePubs;
+    private List<EspacePub> espacePubs;*/
 
     @ManyToOne(fetch = FetchType.LAZY, cascade=CascadeType.ALL)
     @JoinColumn(name = "id_espacepub")
-    private EspacePub espacePub;*/
+    private EspacePub espacePub;
 
     @OneToMany
     private List<Annonce> annonce = new ArrayList<>();

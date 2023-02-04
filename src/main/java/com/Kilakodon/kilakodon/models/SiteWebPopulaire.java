@@ -20,11 +20,29 @@ public class SiteWebPopulaire {
     @Column(name = "idsitewebpopulaire")
     private Long idsitepopulaire;
 
+    public Long getIdsitepopulaire() {
+        return idsitepopulaire;
+    }
+
+    public void setIdsitepopulaire(Long idsitepopulaire) {
+        this.idsitepopulaire = idsitepopulaire;
+    }
+
+    public List<Annonce> getAnnonces() {
+        return annonces;
+    }
+
+    public void setAnnonces(List<Annonce> annonces) {
+        this.annonces = annonces;
+    }
+
     @Column(name = "nomsitepopulaire")
     private String nomsitepopulaire;
 
     @Column(name = "URL")
     private String URL;
+
+    private String image;
 
     @ManyToOne
     private Kilakodon kilakodon;
@@ -32,7 +50,13 @@ public class SiteWebPopulaire {
     @ManyToMany
     private List<Annonce> annonces = new ArrayList<>();
 
+    public String getImage() {
+        return image;
+    }
 
+    public void setImage(String image) {
+        this.image = image;
+    }
     public String getNomsitepopulaire() {
         return nomsitepopulaire;
     }
@@ -48,4 +72,5 @@ public class SiteWebPopulaire {
     public void setURL(String URL) {
         this.URL = URL;
     }
+
 }

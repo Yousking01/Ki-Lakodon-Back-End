@@ -30,8 +30,8 @@ public class Annonce {
     @Column(length = 255)
     private String descriptionannonce;
 
-    @Column(length = 100)
-    private String ciblediffusionannonce;
+    /*@Column(length = 100)
+    private String ciblediffusionannonce;*/
 
     @Column(length = 20)
     private Double budgetannonce;
@@ -59,6 +59,22 @@ public class Annonce {
 
     @ManyToMany
     private List<SiteWebPopulaire> siteWebPopulaires = new ArrayList<>();
+
+    public List<SiteWebPopulaire> getSiteWebPopulaires() {
+        return siteWebPopulaires;
+    }
+
+    public void setSiteWebPopulaires(List<SiteWebPopulaire> siteWebPopulaires) {
+        this.siteWebPopulaires = siteWebPopulaires;
+    }
+
+    public Notification getNotification() {
+        return notification;
+    }
+
+    public void setNotification(Notification notification) {
+        this.notification = notification;
+    }
 
     @OneToOne
     private Notification notification;
@@ -88,13 +104,13 @@ public Long getIdannocne() {
         this.descriptionannonce = descriptionannonce;
     }
 
-    public String getCiblediffusionannonce() {
+   /* public String getCiblediffusionannonce() {
         return ciblediffusionannonce;
     }
 
     public void setCiblediffusionannonce(String ciblediffusionannonce) {
         this.ciblediffusionannonce = ciblediffusionannonce;
-    }
+    }*/
 
     public Double getBudgetannonce() {
         return budgetannonce;

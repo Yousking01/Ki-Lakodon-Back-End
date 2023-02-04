@@ -1,4 +1,4 @@
-/*
+
 package com.Kilakodon.kilakodon.controllers;
 
 
@@ -16,18 +16,19 @@ import java.util.List;
 @RestController
 @RequestMapping("/espacepub")
 @AllArgsConstructor
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class EspacepubController {
 
     private final EspacepubService espacepubService;
     private final EtatRepository etatRepository;
 
-    */
-/*@Autowired
-    private EspacePubRepository espacePubRepository;*//*
+
+    @Autowired
+    private EspacePubRepository espacePubRepository;
 
 
     @PostMapping("/creer/{idetat}")
-    public EspacePub create(@RequestBody EspacePub espacePub, @PathVariable Long idetat){
+    public EspacePub create(@RequestBody EspacePub espacePub, @PathVariable Long idetat) {
         Etat etat = etatRepository.findById(idetat).get();
         espacePub.setEtat(etat);
         return espacepubService.creer(espacePub);
@@ -41,7 +42,7 @@ public class EspacepubController {
     @PutMapping("/modifier/{idespacepub}")
     public EspacePub modifier(@RequestBody EspacePub espacePub, @PathVariable Long idespacepub) {
 
-        return espacepubService.modifier(idespacepub, espacePub );
+        return espacepubService.modifier(idespacepub, espacePub);
     }
 
     @DeleteMapping("/suprimer/{idespacespub}")
@@ -50,8 +51,7 @@ public class EspacepubController {
     }
 
 
-
-   */
+}
 /* @GetMapping("/lire")
     public List<EspacePub> lire() {
         return espacePubRepository.findAll();

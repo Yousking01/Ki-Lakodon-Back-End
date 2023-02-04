@@ -1,12 +1,10 @@
 package com.Kilakodon.kilakodon;
 
 import com.Kilakodon.kilakodon.models.*;
-import com.Kilakodon.kilakodon.repository.AdminRepository;
-import com.Kilakodon.kilakodon.repository.EtatRepository;
-import com.Kilakodon.kilakodon.repository.RoleRepository;
-import com.Kilakodon.kilakodon.repository.UserRepository;
+import com.Kilakodon.kilakodon.repository.*;
 import com.Kilakodon.kilakodon.security.services.EspacepubService;
 import com.Kilakodon.kilakodon.security.services.EtatService;
+import com.Kilakodon.kilakodon.security.services.NotificationService;
 import com.Kilakodon.kilakodon.security.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -51,6 +49,13 @@ public class KilakodonApplication implements CommandLineRunner{
 	private AdminRepository adminRepository;
 
 	@Autowired
+	private NotificationRepository notificationRepository;
+
+	@Autowired
+	private NotificationService notificationService;
+
+
+	@Autowired
 	private PasswordEncoder encoder;
 
 
@@ -78,18 +83,25 @@ public class KilakodonApplication implements CommandLineRunner{
 			Etat etat2 = espacepubService.saveEtat(new Etat(null, ESPACE_PUB_VENDU));
 		}
 
-		if (adminRepository.findAll().size() == 0){
+		if (userRepository.findAll().size() == 0){
 			Set<Role> role= new HashSet();
 			Role role1= roleRepository.findByName(ERole.ROLE_ADMIN);
 			System.err.println(role1.getName());
 			role.add(role1);
 			User admin= new User("youssouf djire","djireyoussouf1999@gmail.com", encoder.encode("12345678"),encoder.encode("12345678"));
 			admin.setRoles(role);
-			userRepository.save(admin);
+			User user= userRepository.save(admin);
 			System.err.println(admin.getRoles().size());
 
-		}
+				Notification notification = new Notification();
+				notification.setDescriptionNotif("une nouvelle a été lancé !!!");
+				notification.setUser(user);
+				notification.setValidation(true);
+				notification.setIdnotif(1L);
 
+				notificationRepository.save(notification);
+
+		}
 	}
 
 }

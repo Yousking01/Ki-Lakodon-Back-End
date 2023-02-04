@@ -6,8 +6,11 @@ import com.Kilakodon.kilakodon.Image.ConfigImage;
 import com.Kilakodon.kilakodon.models.Annonce;
 import com.Kilakodon.kilakodon.models.Annonceur;
 import com.Kilakodon.kilakodon.models.Notification;
+import com.Kilakodon.kilakodon.models.SiteWebPopulaire;
+import com.Kilakodon.kilakodon.repository.AnnonceRepository;
 import com.Kilakodon.kilakodon.repository.AnnonceurRepository;
 import com.Kilakodon.kilakodon.repository.NotificationRepository;
+import com.Kilakodon.kilakodon.repository.SiteWebPopulaireRepository;
 import com.Kilakodon.kilakodon.security.services.AnnonceService;
 import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -18,11 +21,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/annonce")
+@RequestMapping("/api/auth/annonce")
 @AllArgsConstructor
+@CrossOrigin(origins = "*", maxAge = 3600)
+//@CrossOrigin(value = "http://localhost:4200/%22,maxAge = 3600,allowCredentials = "true")
 public class AnnonceController {
 
 
@@ -32,16 +38,21 @@ public class AnnonceController {
     private final AnnonceurRepository annonceurRepository;
     @Autowired
     private final NotificationRepository notificationRepository;
+    @Autowired
+    private SiteWebPopulaireRepository siteWebPopulaireRepository;
+    @Autowired
+    private AnnonceRepository annonceRepository;
 
-    @PostMapping("/creer/{idnotification}")
+    @PostMapping("/creer/{idnotification}/{idannonceur}/{siteWebPopulaires}")
     public Annonce create(@Param("titreannonce") String titreannonce,
                           @Param("descriptionannonce") String descriptionannonce,
-                          @Param("ciblediffusionannonce") String ciblediffusionannonce,
+            /* @Param("ciblediffusionannonce") String ciblediffusionannonce,*/
                           @Param("budgetannonce") Double budgetannonce,
                           @Param("dateDebut") String dateDebut,
                           @Param("dateFin") String dateFin,
                           @Param("image") MultipartFile image,
-                          @Param("idannonceur") Long idannonceur,
+                          @PathVariable("siteWebPopulaires") Long siteWebPopulaires,
+                          @PathVariable(value = "idannonceur") Long idannonceur,
                           @PathVariable(value = "idnotification") Long idNotif
     ) throws IOException {
         System.err.println(idNotif);
@@ -52,12 +63,18 @@ public class AnnonceController {
         Annonce annonce = new Annonce();
         annonce.setTitreannonce(titreannonce);
         annonce.setDescriptionannonce(descriptionannonce);
-        annonce.setCiblediffusionannonce(ciblediffusionannonce);
+        /*annonce.setCiblediffusionannonce(ciblediffusionannonce);*/
         annonce.setBudgetannonce(budgetannonce);
         annonce.setDateDebut(dateDebut);
         annonce.setDateFin(dateFin);
         //annonce.setAnnonceur(annonceur);
         annonce.setNotification(notification);
+        SiteWebPopulaire siteWebPopulaire = siteWebPopulaireRepository.getReferenceById(siteWebPopulaires);
+        List<SiteWebPopulaire> siteWebPopulaires1 = new ArrayList<>();
+
+        siteWebPopulaires1.add(siteWebPopulaire);
+
+        annonce.setSiteWebPopulaires(siteWebPopulaires1);
 
         String img = StringUtils.cleanPath(image.getOriginalFilename());
         annonce.setImage(img);
@@ -72,6 +89,12 @@ public class AnnonceController {
     @GetMapping("/lire")
     public List<Annonce> read(){
         return annonceService.lire();
+    }
+
+    @GetMapping("/lireannonceparidsite/{id}")
+    public List<Annonce> read1( @PathVariable("id") Long idSite){
+        SiteWebPopulaire siteWebPopulaire = siteWebPopulaireRepository.getReferenceById(idSite);
+        return annonceRepository.findBySiteWebPopulaires(siteWebPopulaire);
     }
 
     @PutMapping("/modifier/{idannonce}")

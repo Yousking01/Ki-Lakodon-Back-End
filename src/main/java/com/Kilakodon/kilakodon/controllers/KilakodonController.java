@@ -1,4 +1,4 @@
-/*
+
 package com.Kilakodon.kilakodon.controllers;
 
 import com.Kilakodon.kilakodon.models.Kilakodon;
@@ -13,6 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/kilakodon")
 @AllArgsConstructor
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class KilakodonController {
 
     private final KilakodonService kilakodonService;
@@ -38,4 +39,4 @@ public class KilakodonController {
         return kilakodonService.suprimer(idKilakodon);
     }
 }
-*/
+

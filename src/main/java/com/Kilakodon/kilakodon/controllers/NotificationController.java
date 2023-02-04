@@ -1,4 +1,4 @@
-/*
+
 package com.Kilakodon.kilakodon.controllers;
 
 import com.Kilakodon.kilakodon.models.Kilakodon;
@@ -15,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/notification")
 @AllArgsConstructor
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -32,15 +33,15 @@ public class NotificationController {
         return notificationService.lire();
     }
 
-   */
-/* @PutMapping("/modifier/{idKilakodon}")
+
+   /* @PutMapping("/modifier/{idKilakodon}")
     public Notification modifier(@PathVariable Long idNotif, @RequestBody Notification  notification) {
-        return notificationService.modifier(idNotif, notification);
-    }*//*
+        return notificationService.save(idNotif, notification);
+    }*/
 
     @DeleteMapping("suprimer/{idNotif}")
     public String suprimer(@PathVariable Long idNotif) {
         return notificationService.supprimer(idNotif);
     }
 }
-*/
+

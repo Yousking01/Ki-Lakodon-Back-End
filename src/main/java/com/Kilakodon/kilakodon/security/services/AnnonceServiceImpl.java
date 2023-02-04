@@ -37,7 +37,7 @@ public class AnnonceServiceImpl implements AnnonceService{
                 .map(p->{
                     p.setTitreannonce(annonce.getTitreannonce());
                     p.setDescriptionannonce(annonce.getDescriptionannonce());
-                    p.setCiblediffusionannonce(annonce.getCiblediffusionannonce());
+                    /*p.setCiblediffusionannonce(annonce.getCiblediffusionannonce());*/
                     p.setBudgetannonce(annonce.getBudgetannonce());
                     p.setDateFin(annonce.getDateFin());
                     p.setImage(annonce.getImage());

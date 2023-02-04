@@ -1,4 +1,4 @@
-/*
+
 package com.Kilakodon.kilakodon.controllers;
 
 import com.Kilakodon.kilakodon.models.User;
@@ -22,6 +22,7 @@ import java.util.Optional;
 @RestController
 @AllArgsConstructor
 @RequestMapping("api/user")
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class UserController {
 
 
@@ -77,4 +78,4 @@ public class UserController {
 
 
 }
-*/
+

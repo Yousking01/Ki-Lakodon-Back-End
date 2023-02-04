@@ -15,5 +15,6 @@ public interface NotificationService {
     List<Notification> lire();
 
     String supprimer(Long idNotif);
+
 }
 
