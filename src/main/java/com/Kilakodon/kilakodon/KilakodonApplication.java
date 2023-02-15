@@ -1,17 +1,20 @@
 package com.Kilakodon.kilakodon;
 
+import com.Kilakodon.kilakodon.Image.JacksonConfig;
 import com.Kilakodon.kilakodon.models.*;
 import com.Kilakodon.kilakodon.repository.*;
 import com.Kilakodon.kilakodon.security.services.EspacepubService;
 import com.Kilakodon.kilakodon.security.services.EtatService;
 import com.Kilakodon.kilakodon.security.services.NotificationService;
 import com.Kilakodon.kilakodon.security.services.UserService;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,7 +30,8 @@ import static com.Kilakodon.kilakodon.models.EspacePubEtat.ESPACE_PUB_VENDU;
 
 
 @SpringBootApplication
-@EnableAutoConfiguration
+//@EnableAutoConfiguration
+@Import(JacksonConfig.class)
 public class KilakodonApplication implements CommandLineRunner{
 	@Autowired
 	private UserRepository userRepository;
@@ -73,9 +77,10 @@ public class KilakodonApplication implements CommandLineRunner{
 	@Override
 	public void run(String... args) throws Exception {
 		if (roleRepository.findAll().size() == 0) {
-			Role r1 = userService.saveRole(new Role(null, ROLE_ADMIN));
-			Role r2 = userService.saveRole(new Role(null, ROLE_USER));
-			Role r3 = userService.saveRole(new Role(null, ROLE_MODERATOR));
+			Role r1 = userService.saveRole(new Role(ROLE_ADMIN));
+			Role r2 = userService.saveRole(new Role(ROLE_SITEWEB));
+			Role r3 = userService.saveRole(new Role(ROLE_ANNONCEUR));
+			Role r4 = userService.saveRole(new Role(ROLE_USER));
 		}
 
 		if (etatRepository.findAll().size() == 0) {
@@ -84,15 +89,24 @@ public class KilakodonApplication implements CommandLineRunner{
 		}
 
 		if (userRepository.findAll().size() == 0){
-			Set<Role> role= new HashSet();
+			Set<Role> roles= new HashSet();
 			Role role1= roleRepository.findByName(ERole.ROLE_ADMIN);
 			System.err.println(role1.getName());
-			role.add(role1);
+			roles.add(role1);
+			/*roles.forEach(role -> {
+				System.err.println(role.getName());
+			});*/
 			User admin= new User("youssouf djire","djireyoussouf1999@gmail.com", encoder.encode("12345678"),encoder.encode("12345678"));
-			admin.setRoles(role);
-			User user= userRepository.save(admin);
-			System.err.println(admin.getRoles().size());
-
+			admin.setRoles(roles);
+			userRepository.save(admin);
+			/*EntityManager entityManager = null;
+			Role role = new Role(ROLE_ADMIN);*/
+			//admin.addRole(role);
+			/*entityManager.persist(admin);
+			entityManager.persist(role);
+			entityManager.flush();*/
+			//user.getRoles().forEach(role -> { System.err.println(role.getName());});
+			User user = userRepository.save(admin);
 				Notification notification = new Notification();
 				notification.setDescriptionNotif("une nouvelle a été lancé !!!");
 				notification.setUser(user);

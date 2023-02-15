@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -46,16 +47,33 @@ public class Annonce {
         this.image = image;
     }
 
-    @JsonFormat(pattern = "aaaa-MM-jj", shape = JsonFormat.Shape.STRING)
+    //@JsonFormat(pattern = "aaaa-MM-jj", shape = JsonFormat.Shape.STRING)
     @Column(length = 20)
-    private String dateDebut;
+    private Date dateDebut;
 
-    @JsonFormat(pattern = "aaaa-MM-jj", shape = JsonFormat.Shape.STRING)
+    //@JsonFormat(pattern = "aaaa-MM-jj", shape = JsonFormat.Shape.STRING)
     @Column(length = 20)
-    private String dateFin;
+    private Date dateFin;
 
-    /*@ManyToOne
-    private Annonceur annonceur;*/
+////////commparaison des dates/////////
+    public boolean isEndDateBeforeStartDate() {
+        return dateFin.before(dateDebut);
+    }
+
+    public boolean isEndDateAfterStartDate() {
+        return dateFin.after(dateDebut);
+    }
+/////////fin de la comparaison des dates////////
+    public Annnonceur getAnnonceur() {
+        return annonceur;
+    }
+
+    public void setAnnonceur(Annnonceur annonceur) {
+        this.annonceur = annonceur;
+    }
+
+    @ManyToOne
+    private Annnonceur annonceur;
 
     @ManyToMany
     private List<SiteWebPopulaire> siteWebPopulaires = new ArrayList<>();
@@ -120,19 +138,19 @@ public Long getIdannocne() {
         this.budgetannonce = budgetannonce;
     }
 
-    public String getDateDebut() {
+    public Date getDateDebut() {
         return dateDebut;
     }
 
-    public void setDateDebut(String dateDebut) {
+    public void setDateDebut(Date dateDebut) {
         this.dateDebut = dateDebut;
     }
 
-    public String getDateFin() {
+    public Date getDateFin() {
         return dateFin;
     }
 
-    public void setDateFin(String dateFin) {
+    public void setDateFin(Date dateFin) {
         this.dateFin = dateFin;
     }
 }

@@ -2,6 +2,7 @@
 package com.Kilakodon.kilakodon.models;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,8 +41,9 @@ public abstract class Utilisateur {
     @Size(max = 50)
     private String password;
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "admin_roles",
+    @JoinTable(name = "admin1_roles",
            joinColumns = @JoinColumn(name = "admin_id"),
     inverseJoinColumns = @JoinColumn(name = "role1_id"))
     private Set<Role> roles = new HashSet<>();

@@ -26,11 +26,18 @@ public class Admin extends Utilisateur {
 
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(  name = "admin1_roles",
+    @JoinTable(  name = "admin_roles",
             joinColumns = @JoinColumn(name = "admin_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
+            inverseJoinColumns = @JoinColumn(name = "role1_id"))
     private Set<Role> roles = new HashSet<>();
 
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
 
     public Admin(String username, String email, String password) {
         super(username,email,password);

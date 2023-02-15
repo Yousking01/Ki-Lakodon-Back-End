@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/notification")
+@RequestMapping("/api/auth/notification")
 @AllArgsConstructor
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class NotificationController {

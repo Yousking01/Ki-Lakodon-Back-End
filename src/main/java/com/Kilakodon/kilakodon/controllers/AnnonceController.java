@@ -3,12 +3,12 @@ package com.Kilakodon.kilakodon.controllers;
 
 
 import com.Kilakodon.kilakodon.Image.ConfigImage;
+import com.Kilakodon.kilakodon.models.Annnonceur;
 import com.Kilakodon.kilakodon.models.Annonce;
-import com.Kilakodon.kilakodon.models.Annonceur;
 import com.Kilakodon.kilakodon.models.Notification;
 import com.Kilakodon.kilakodon.models.SiteWebPopulaire;
+import com.Kilakodon.kilakodon.repository.AnnnonceurRepository;
 import com.Kilakodon.kilakodon.repository.AnnonceRepository;
-import com.Kilakodon.kilakodon.repository.AnnonceurRepository;
 import com.Kilakodon.kilakodon.repository.NotificationRepository;
 import com.Kilakodon.kilakodon.repository.SiteWebPopulaireRepository;
 import com.Kilakodon.kilakodon.security.services.AnnonceService;
@@ -16,12 +16,16 @@ import lombok.AllArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -35,7 +39,7 @@ public class AnnonceController {
     @Autowired
     private final AnnonceService annonceService;
     @Autowired
-    private final AnnonceurRepository annonceurRepository;
+    private final AnnnonceurRepository annonceurRepository;
     @Autowired
     private final NotificationRepository notificationRepository;
     @Autowired
@@ -54,9 +58,9 @@ public class AnnonceController {
                           @PathVariable("siteWebPopulaires") Long siteWebPopulaires,
                           @PathVariable(value = "idannonceur") Long idannonceur,
                           @PathVariable(value = "idnotification") Long idNotif
-    ) throws IOException {
+    ) throws IOException, ParseException {
         System.err.println(idNotif);
-        Annonceur annonceur= annonceurRepository.findById(idannonceur).get();
+        Annnonceur annonceur= annonceurRepository.findById(idannonceur).get();
         System.err.println("kjhbvg"+annonceur);
         Notification notification= notificationRepository.findByIdnotif(idNotif);
         System.err.println("notificdation"+notification);
@@ -65,9 +69,35 @@ public class AnnonceController {
         annonce.setDescriptionannonce(descriptionannonce);
         /*annonce.setCiblediffusionannonce(ciblediffusionannonce);*/
         annonce.setBudgetannonce(budgetannonce);
-        annonce.setDateDebut(dateDebut);
-        annonce.setDateFin(dateFin);
-        //annonce.setAnnonceur(annonceur);
+  //////////////////      commparer de date    //////////
+
+        /*if (annonce.isEndDateBeforeStartDate()) {
+            ResponseEntity.badRequest().body("La date de fin doit être postérieure à la date de début.");
+        }
+
+        // Enregistrer l'événement dans la base de données.
+        ResponseEntity.ok("L'événement a été enregistré avec succès.");
+    }*/
+        //Date t=new Date();
+        //Date date = new SimpleDateFormat("dd/MM/yyyy").parse(dateDebut);
+        //Date date1 = new SimpleDateFormat("dd/MM/yyyy").parse(dateFin);
+        //System.err.println(date);
+        String dateString= "15/02/2023";
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        Date date =dateFormat.parse(dateString);
+        Date date1 = dateFormat.parse(dateString);
+        annonce.setDateDebut(date);
+        //if(t.before(dateFin)){
+           annonce.setDateFin(date1);
+
+
+
+    //}
+      //  else {
+        //    System.out.println("date de fin infere à today");
+        //}
+
+        annonce.setAnnonceur(annonceur);
         annonce.setNotification(notification);
         SiteWebPopulaire siteWebPopulaire = siteWebPopulaireRepository.getReferenceById(siteWebPopulaires);
         List<SiteWebPopulaire> siteWebPopulaires1 = new ArrayList<>();
@@ -98,7 +128,49 @@ public class AnnonceController {
     }
 
     @PutMapping("/modifier/{idannonce}")
-    public Annonce update(@PathVariable Long idannonce, @RequestBody Annonce annonce){
+    public Annonce update
+            /*(@PathVariable Long idannonce, @RequestBody Annonce annonce){
+        return annonceService.modifier(idannonce,annonce);*/
+    (@PathVariable Long idannonce,
+     @Param("titreannonce") String titreannonce,
+     @Param("descriptionannonce") String descriptionannonce,
+            /* @Param("ciblediffusionannonce") String ciblediffusionannonce,*/
+     @Param("budgetannonce") Double budgetannonce,
+     @Param("dateDebut") Date dateDebut,
+     @Param("dateFin") Date dateFin,
+     @Param("image") MultipartFile image
+//     @PathVariable("siteWebPopulaires") Long siteWebPopulaires,
+//     @PathVariable(value = "idannonceur") Long idannonceur,
+//     @PathVariable(value = "idnotification") Long idNotif
+    ) throws IOException {
+        //System.err.println(idNotif);
+        //Annonceur annonceur= annonceurRepository.findById(idannonceur).get();
+        //System.err.println("kjhbvg"+annonceur);
+        //Notification notification= notificationRepository.findByIdnotif(idNotif);
+        //System.err.println("notificdation"+notification);
+        Annonce annonce = new Annonce();
+        annonce.setTitreannonce(titreannonce);
+        annonce.setDescriptionannonce(descriptionannonce);
+        /*annonce.setCiblediffusionannonce(ciblediffusionannonce);*/
+        annonce.setBudgetannonce(budgetannonce);
+        annonce.setDateDebut(dateDebut);
+        annonce.setDateFin(dateFin);
+        //annonce.setAnnonceur(annonceur);
+        //annonce.setNotification(notification);
+        //SiteWebPopulaire siteWebPopulaire = siteWebPopulaireRepository.getReferenceById(siteWebPopulaires);
+        List<SiteWebPopulaire> siteWebPopulaires1 = new ArrayList<>();
+
+        //siteWebPopulaires1.add(siteWebPopulaire);
+
+        annonce.setSiteWebPopulaires(siteWebPopulaires1);
+
+        String img = StringUtils.cleanPath(image.getOriginalFilename());
+        annonce.setImage(img);
+        String uploaDir = "C:\\Users\\Youssouf DJIRE\\Desktop\\Ki-Lakodon\\src\\assets\\image";
+        ConfigImage.saveimg(uploaDir, img, image);
+
+
+
         return annonceService.modifier(idannonce,annonce);
     }
 

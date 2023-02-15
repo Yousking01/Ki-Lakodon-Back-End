@@ -41,6 +41,9 @@ public class AnnonceServiceImpl implements AnnonceService{
                     p.setBudgetannonce(annonce.getBudgetannonce());
                     p.setDateFin(annonce.getDateFin());
                     p.setImage(annonce.getImage());
+                    p.setAnnonceur(p.getAnnonceur());
+                    p.setSiteWebPopulaires(p.getSiteWebPopulaires());
+                    p.setNotification(p.getNotification());
                     return AnnonceRepository.save(p);
                 }).orElseThrow(()-> new RuntimeException("Annonce non trouvé !"));
     }

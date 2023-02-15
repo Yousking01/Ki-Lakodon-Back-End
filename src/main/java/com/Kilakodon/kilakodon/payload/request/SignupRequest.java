@@ -34,6 +34,10 @@ public class SignupRequest {
     @Size(min = 6, max = 40)
     private String confirmpassword;
 
+    public SignupRequest() {
+        // Default constructor
+    }
+
     public String getConfirmpassword() {
         return confirmpassword;
     }

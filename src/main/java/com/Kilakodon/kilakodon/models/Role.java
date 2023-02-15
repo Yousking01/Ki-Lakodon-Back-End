@@ -3,10 +3,19 @@ package com.Kilakodon.kilakodon.models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @AllArgsConstructor
 @Table(name = "roles")
+@NoArgsConstructor
+@Setter
+@Getter
 public class Role {
 
     @Id
@@ -16,18 +25,18 @@ public class Role {
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
     private ERole name;
-
-    public Role() {
-
-    }
-
     public Role(ERole name) {
         this.name = name;
     }
+    /*public Role() {
+
+    }*/
 
 
 
-    public Long getId() {
+
+
+    /*public Long getId() {
         return id;
     }
 
@@ -41,6 +50,16 @@ public class Role {
 
     public void setName(ERole name) {
         this.name = name;
+    }*/
+
+    @ManyToMany(mappedBy = "roles")
+    private Set<User> users = new HashSet<>();
+
+    public Set<User> getUsers() {
+        return users;
     }
 
+    public void setUsers(Set<User> users) {
+        this.users = users;
+    }
 }

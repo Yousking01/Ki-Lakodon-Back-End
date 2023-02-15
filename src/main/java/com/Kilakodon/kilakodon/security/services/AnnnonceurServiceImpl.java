@@ -1,69 +1,43 @@
-
 package com.Kilakodon.kilakodon.security.services;
 
-
-import com.Kilakodon.kilakodon.models.*;
-import com.Kilakodon.kilakodon.repository.AnnonceurRepository;
+import com.Kilakodon.kilakodon.models.Annnonceur;
+import com.Kilakodon.kilakodon.models.EspacePub;
+import com.Kilakodon.kilakodon.repository.AnnnonceurRepository;
 import com.Kilakodon.kilakodon.repository.EspacePubRepository;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
-
-public class AnnonceurServiceImpl
-        implements AnnonceurService {
+public class AnnnonceurServiceImpl {
 
     @Autowired
-    private AnnonceurRepository annonceurRepository;
+    private AnnnonceurRepository annonceurRepository;
 
     @Autowired
     private EspacePubRepository espacePubRepository;
 
 
-    @Override
-    public Annonceur creer(Annonceur annonceur) {
+
+    public Annnonceur creer(Annnonceur annonceur) {
 
         return annonceurRepository.save(annonceur);
     }
 
-    /*@Override
-    public Optional<Annonceur> getNomannonceur(String nomannonceur) {
-        return annonceurRepository.findByUsername(nomannonceur);
-    }*/
-
-    @Override
-    public List<Annonceur> lire() {
+    public List<Annnonceur> lire() {
         return annonceurRepository.findAll();
     }
 
 
-/*@Override
-    public Annonceur modifier(Long idannonceur, Annonceur annonceur) {
-        return annonceurRepository.findById(idannonceur)
-                .map(p->{
-                    p.setUsername (annonceur.getUsername());
-                    p.setAdrresseannonceur(annonceur.getAdrresseannonceur());
-                    p.setEmail(annonceur.getEmail());
-                    p.setNumeroannonceur(annonceur.getNumeroannonceur());
-                    p.setBudgetannonceur(annonceur.getBudgetannonceur());
-                    return annonceurRepository.save(annonceur);
-                }).orElseThrow(()-> new RuntimeException("Annonceur non trouver"));
-    }*/
-
-
-    @Override
     public String suprimer(long idannonceur) {
         annonceurRepository.deleteById(idannonceur);
         return "Annonceur Suprimer avec Succèss";
     }
 
-    @Override
+
     public String Acheter(long idannonceur, Long idespacepub) {
-        Annonceur annonceur=annonceurRepository.findById(idannonceur).orElse(null);
+        Annnonceur annonceur=annonceurRepository.findById(idannonceur).orElse(null);
         EspacePub espacePub=espacePubRepository.findById(idespacepub).orElse(null);
         if (annonceur != null && espacePub != null){
             int budgetannonceur = annonceur.getBudgetannonceur();
@@ -84,4 +58,3 @@ public class AnnonceurServiceImpl
         return "Espace Achéter avec Succèss";
     }
 }
-

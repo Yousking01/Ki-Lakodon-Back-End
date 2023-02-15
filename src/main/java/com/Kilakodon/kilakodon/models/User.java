@@ -2,10 +2,7 @@ package com.Kilakodon.kilakodon.models;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 /*import javax.persistence.Entity;
@@ -31,6 +28,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
+@ToString
 public class User extends Utilisateur{
    @NotBlank
     @Size(max = 120)
@@ -74,12 +72,30 @@ public class User extends Utilisateur{
         this.confirmpassword = confirmpassword;
     }
 */
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(  name = "roles_user",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    /*
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinTable(  name = "admin_roles",
+            joinColumns = @JoinColumn(name = "admin_id"),
+            inverseJoinColumns = @JoinColumn(name = "role1_id")
+    )
+
     private Set<Role> roles = new HashSet<>();
 
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
+    public User(String username, String email, String password, String confirmpassword, Set<Role> roles) {
+        super(username, email, password);
+        this.confirmpassword = confirmpassword;
+        this.roles = roles;
+    }
+
+     */
 
 
 }

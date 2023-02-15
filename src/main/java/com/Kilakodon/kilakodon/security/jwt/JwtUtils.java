@@ -5,11 +5,15 @@ package com.Kilakodon.kilakodon.security.jwt;
 import com.Kilakodon.kilakodon.security.services.UserDetailsImpl;
 import io.jsonwebtoken.*;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.WebUtils;
 
 import java.util.Date;
 
@@ -23,7 +27,10 @@ public class JwtUtils {
 
     @Value("${bezkoder.app.jwtExpirationMs}")
     private int jwtExpirationMs;
+    @Value("bezkoder")
+    private String jwtCookie;
 
+//************************METHODE PERMETTANT DE GENERER LE TOKEN*************************
     public String generateJwtToken(Authentication authentication) {
 
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
@@ -35,6 +42,32 @@ public class JwtUtils {
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
     }
+
+    //** METHODE PERMETTANT DE STOCKER LES TOKENS DANS LE COOKIE *
+    public String getJwtFromCookies(HttpServletRequest request) {
+        Cookie cookie = WebUtils.getCookie(request, jwtCookie);
+        if (cookie != null) {
+            return cookie.getValue();
+        } else {
+            return null;
+        }
+    }
+
+    //** METHODE PERMETTANT DE GENERER LE TOKEN DANS UN COOKIE**
+    public ResponseCookie generateJwtCookie(UserDetailsImpl userPrincipal) {
+        String jwt = generateTokenFromUsername(userPrincipal.getUsername());
+        ResponseCookie cookie = ResponseCookie.from(jwtCookie, jwt).path("/api").maxAge(24 * 60 * 60).httpOnly(true).build();
+        return cookie;
+    }
+
+
+    //*** METHODE PERMETTANT DE SUPPRIMER LES COOKIES LORQUE L'UTILISATEUR SE DECONNECTE
+    public ResponseCookie getCleanJwtCookie() {
+        ResponseCookie cookie = ResponseCookie.from(jwtCookie, null).path("/api").build();
+        return cookie;
+    }
+
+
 
     public String getUserNameFromJwtToken(String token) {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
@@ -59,5 +92,14 @@ public class JwtUtils {
         return false;
     }
 
+    //METHODE PERMETTANT DE GENERER LE TOKEN A PARTIR DU NOM D'UTILISATEUR
+    public String generateTokenFromUsername(String username) {
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
+    }
 }
 

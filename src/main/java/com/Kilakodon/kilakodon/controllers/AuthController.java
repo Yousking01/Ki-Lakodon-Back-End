@@ -5,6 +5,7 @@ package com.Kilakodon.kilakodon.controllers;
 import com.Kilakodon.kilakodon.models.ERole;
 import com.Kilakodon.kilakodon.models.Role;
 import com.Kilakodon.kilakodon.models.User;
+import com.Kilakodon.kilakodon.models.Utilisateur;
 import com.Kilakodon.kilakodon.payload.request.SignupRequest;
 import com.Kilakodon.kilakodon.payload.request.LoginRequest;
 import com.Kilakodon.kilakodon.payload.response.JwtResponse;
@@ -12,14 +13,22 @@ import com.Kilakodon.kilakodon.payload.response.JwtResponse;
 import com.Kilakodon.kilakodon.payload.response.MessageResponse;
 import com.Kilakodon.kilakodon.repository.RoleRepository;
 import com.Kilakodon.kilakodon.repository.UserRepository;
+import com.Kilakodon.kilakodon.repository.UtilisateurRepository;
 import com.Kilakodon.kilakodon.security.jwt.JwtUtils;
 import com.Kilakodon.kilakodon.security.services.UserDetailsImpl;
 
 
 import com.Kilakodon.kilakodon.util.EmailConstructor;
+import com.nimbusds.openid.connect.sdk.UserInfoResponse;
+//import lombok.extern.java.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,6 +37,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +47,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    private static final Logger Log = LoggerFactory.getLogger(AuthController.class);
     @Autowired
     EmailConstructor emailConstructor;
 
@@ -50,6 +62,9 @@ public class AuthController {
     UserRepository userRepository;
 
     @Autowired
+    UtilisateurRepository utilisateurRepository;
+
+    @Autowired
     RoleRepository roleRepository;
 
     @Autowired
@@ -58,20 +73,52 @@ public class AuthController {
     @Autowired
     JwtUtils jwtUtils;
 
+
+
+    @GetMapping("/getAll")
+    public List<Utilisateur> getAllUser(){
+        return utilisateurRepository.findAll();
+    }
+
+    @GetMapping("/role")
+    public List<Role> getAllRole(){ return roleRepository.findAll();}
+
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+
+        //UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        //ICI NOUS CREEONS UNE INSTANCE DE CELUI QUI S'EST AUTHENTIFIER EN UTILSANT LA CLASS USERDETAILIMPL
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        //ON GENERE LE TOKEN EN LE STOKANT DIRECTEMENT DANS UN COOKIE
+        ResponseCookie jwtCookie = jwtUtils.generateJwtCookie(userDetails);
         String jwt = jwtUtils.generateJwtToken(authentication);
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
+        List<String> entite = new ArrayList<>();
+
+        roles.forEach(role ->{
+            entite.add(role);
+        });
+
+        Log.info("VOUS ETES AUTHENTIFIE AVEC SUCCESS");
+
+        //METHODE PERMETTANT DE RETOURNER LES INFOS DE USER ET DE STOCKER LE JWT DANS LE COOKIES DE POSTMAN
+        /*ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .body(new UserInfoResponse(userDetails.getId(),
+                        userDetails.getUsername(),
+                        userDetails.getPassword(),
+                        roles));*/
+        //On RETOURNE LE TOKEN ET LES INFOS DE UTILISATEURS
         return ResponseEntity.ok(new JwtResponse(jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
@@ -101,18 +148,24 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+   // @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> registerUser(@RequestBody SignupRequest signUpRequest) {
+
+        //VERICAFICATION DE L'EXISTANCE DE L'UTILISATUER
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Error: Username is already taken!"));
+                    .body(new MessageResponse("Error: Nom d'utilisateur déjà pris!"));
         }
-
+        //VERIFICATION DE L'EXISTANCE DE L'EMAIL
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Error: Email is already in use!"));
+                    .body(new MessageResponse("Error: Cet email est déjà utilisé!"));
         }
+        Log.info("Création d'un utilisateur");
+        //CREATION d'un collaborateur
+
 
         // Create new user's account
         if (signUpRequest.getPassword().equals(signUpRequest.getConfirmpassword())){
@@ -121,12 +174,14 @@ public class AuthController {
                 encoder.encode(signUpRequest.getPassword()),
                 encoder.encode(signUpRequest.getConfirmpassword()));
 
-
+    //RECUPERATION DES ROLES DU COLLABORATEUR
         Set<String> strRoles = signUpRequest.getRole();
+        //CREATION DE ROLE A L'INTERIEUR PERMMETANT DE STOCKER LES DIFFERENTS ENTRER PAR L'AD
         Set<Role> roles = new HashSet<>();
-
+        System.err.println(strRoles);
         if (strRoles == null) {
             Role userRole = roleRepository.findByName(ERole.ROLE_USER);
+
             if (userRole == null) {
                 return ResponseEntity
                         .badRequest()
@@ -139,7 +194,8 @@ public class AuthController {
         } else {
             strRoles.forEach(role -> {
                 switch (role) {
-                    case "admin":
+                    case "ROLE_ADMIN":
+                       // System.err.println("eeeeeeeeeeeeeeeee" );
                         Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN);
                         if (adminRole == null) {
                             ResponseEntity
@@ -150,7 +206,28 @@ public class AuthController {
                         }
                         //.orElseThrow(() -> new RuntimeException("Error: Role non fournit."));
                         break;
-
+                    case "ROLE_ANNONCEUR":
+                        Role annonceurRole = roleRepository.findByName(ERole.ROLE_ANNONCEUR);
+                        if (annonceurRole == null) {
+                            ResponseEntity
+                                    .badRequest()
+                                    .body(new MessageResponse("Error: Role non fourni !"));
+                        } else {
+                            roles.add(annonceurRole);
+                        }
+                        //.orElseThrow(() -> new RuntimeException("Error: Role non fournit."));
+                        break;
+                    case "ROLE_SITEWEB":
+                        Role siteWeb = roleRepository.findByName(ERole.ROLE_SITEWEB);
+                        if (siteWeb == null) {
+                            ResponseEntity
+                                    .badRequest()
+                                    .body(new MessageResponse("Error: Role non fourni !"));
+                        } else {
+                            roles.add(siteWeb);
+                        }
+                        //.orElseThrow(() -> new RuntimeException("Error: Role non fournit."));
+                        break;
                     default:
                         Role userRole = roleRepository.findByName(ERole.ROLE_USER);
                         if (userRole == null) {
@@ -165,7 +242,11 @@ public class AuthController {
             });
         }
 
+
         user.setRoles(roles);
+            System.err.println(user);
+
+            //utilisateurRepository.inserInToAdminRole(1L,1L);
         userRepository.save(user);
         mailSender.send(emailConstructor.constructNewUserEmail(user));
 
@@ -177,6 +258,19 @@ public class AuthController {
     }
 
     }
+
+    //** MEHTODE PERMETTANT DE CE DECONNECTER **
+    @PostMapping("/signout")
+    public ResponseEntity<?> logoutUser() {
+
+        Log.info("COLLABORATEUR DECONNECTER AVEC SUCCESS");
+
+        ResponseCookie cookie = jwtUtils.getCleanJwtCookie();
+
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(new MessageResponse("DECONNEXION REUSSI"));
+    }
+
 }
 
 
