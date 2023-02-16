@@ -2,13 +2,15 @@
 package com.Kilakodon.kilakodon.models;
 
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.validation.constraints.FutureOrPresent;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -35,7 +37,12 @@ public class Annonce {
     private String ciblediffusionannonce;*/
 
     @Column(length = 20)
-    private Double budgetannonce;
+    @Min(value = 10000, message = "Le budget de l'annonce ne doit pas être inférieur à 10 000 francs")
+    private int budgetannonce;
+
+    public Annonce(int budgetannonce) {
+        this.budgetannonce = budgetannonce;
+    }
 
     private String image;
 
@@ -49,10 +56,14 @@ public class Annonce {
 
     //@JsonFormat(pattern = "aaaa-MM-jj", shape = JsonFormat.Shape.STRING)
     @Column(length = 20)
+    @NotNull
+    @FutureOrPresent
     private Date dateDebut;
 
     //@JsonFormat(pattern = "aaaa-MM-jj", shape = JsonFormat.Shape.STRING)
     @Column(length = 20)
+    @NotNull
+    @FutureOrPresent
     private Date dateFin;
 
 ////////commparaison des dates/////////
@@ -130,12 +141,13 @@ public Long getIdannocne() {
         this.ciblediffusionannonce = ciblediffusionannonce;
     }*/
 
-    public Double getBudgetannonce() {
+    public int getBudgetannonce() {
         return budgetannonce;
     }
 
-    public void setBudgetannonce(Double budgetannonce) {
+    public Object setBudgetannonce(int budgetannonce) {
         this.budgetannonce = budgetannonce;
+        return ("le bugdet doit etre superieur à 10000fr");
     }
 
     public Date getDateDebut() {

@@ -13,9 +13,9 @@ import com.Kilakodon.kilakodon.repository.NotificationRepository;
 import com.Kilakodon.kilakodon.repository.SiteWebPopulaireRepository;
 import com.Kilakodon.kilakodon.security.services.AnnonceService;
 import lombok.AllArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +24,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -48,10 +51,10 @@ public class AnnonceController {
     private AnnonceRepository annonceRepository;
 
     @PostMapping("/creer/{idnotification}/{idannonceur}/{siteWebPopulaires}")
-    public Annonce create(@Param("titreannonce") String titreannonce,
+    public Object create(@Param("titreannonce") String titreannonce,
                           @Param("descriptionannonce") String descriptionannonce,
             /* @Param("ciblediffusionannonce") String ciblediffusionannonce,*/
-                          @Param("budgetannonce") Double budgetannonce,
+                          @Param("budgetannonce") int budgetannonce,
                           @Param("dateDebut") String dateDebut,
                           @Param("dateFin") String dateFin,
                           @Param("image") MultipartFile image,
@@ -68,8 +71,18 @@ public class AnnonceController {
         annonce.setTitreannonce(titreannonce);
         annonce.setDescriptionannonce(descriptionannonce);
         /*annonce.setCiblediffusionannonce(ciblediffusionannonce);*/
-        annonce.setBudgetannonce(budgetannonce);
-  //////////////////      commparer de date    //////////
+        //annonce.setBudgetannonce(budgetannonce);
+
+        ///////////plafond de budget//////
+        // Valider le budget de l'annonce
+        System.out.println("le budjettttttttttttttt");
+        System.out.println(annonce.getBudgetannonce());
+        //else {
+
+        // ("Le budget de l'annonce doit être compris entre 10 000 et 100 000 francs");
+        //}
+
+        //////////////////      commparer de date    //////////
 
         /*if (annonce.isEndDateBeforeStartDate()) {
             ResponseEntity.badRequest().body("La date de fin doit être postérieure à la date de début.");
@@ -82,18 +95,37 @@ public class AnnonceController {
         //Date date = new SimpleDateFormat("dd/MM/yyyy").parse(dateDebut);
         //Date date1 = new SimpleDateFormat("dd/MM/yyyy").parse(dateFin);
         //System.err.println(date);
+
         String dateString= "15/02/2023";
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         Date date =dateFormat.parse(dateString);
-        Date date1 = dateFormat.parse(dateString);
         annonce.setDateDebut(date);
+
+        //Ajouter 1 jours à la date de début pour obtenir la fin
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.DATE, 1);
+        Date date1 = cal.getTime();
+        annonce.setDateFin(date1);
+
+        //CAlculer la difference entre les deux dates
+        Instant instantDebut = date.toInstant();
+        Instant instantFin = date1.toInstant();
+        Duration difference = Duration.between(instantDebut, instantFin);
+
+        // Afficher la différence entre les deux dates
+        System.out.println("La différence entre les dates de début et de fin est de " + difference.toDays() + " jours.");
+
+        //Date date1 = dateFormat.parse(dateString);
+
+
         //if(t.before(dateFin)){
-           annonce.setDateFin(date1);
 
 
 
-    //}
-      //  else {
+
+        //}
+        //  else {
         //    System.out.println("date de fin infere à today");
         //}
 
@@ -110,10 +142,16 @@ public class AnnonceController {
         annonce.setImage(img);
         String uploaDir = "C:\\Users\\Youssouf DJIRE\\Desktop\\Ki-Lakodon\\src\\assets\\image";
         ConfigImage.saveimg(uploaDir, img, image);
+        if (budgetannonce >= 10000 ) {
+            annonce.setBudgetannonce(budgetannonce);
+            return annonceService.creer(annonce);
+
+        }
 
 
 
-        return annonceService.creer(annonce);
+        return   ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Le budget de l'annonce doit être compris entre 10 000 et 100 000 francs");
+
     }
 
     @GetMapping("/lire")
@@ -128,14 +166,14 @@ public class AnnonceController {
     }
 
     @PutMapping("/modifier/{idannonce}")
-    public Annonce update
+    public Object update
             /*(@PathVariable Long idannonce, @RequestBody Annonce annonce){
         return annonceService.modifier(idannonce,annonce);*/
     (@PathVariable Long idannonce,
      @Param("titreannonce") String titreannonce,
      @Param("descriptionannonce") String descriptionannonce,
             /* @Param("ciblediffusionannonce") String ciblediffusionannonce,*/
-     @Param("budgetannonce") Double budgetannonce,
+     @Param("budgetannonce") int budgetannonce,
      @Param("dateDebut") Date dateDebut,
      @Param("dateFin") Date dateFin,
      @Param("image") MultipartFile image
@@ -152,7 +190,15 @@ public class AnnonceController {
         annonce.setTitreannonce(titreannonce);
         annonce.setDescriptionannonce(descriptionannonce);
         /*annonce.setCiblediffusionannonce(ciblediffusionannonce);*/
-        annonce.setBudgetannonce(budgetannonce);
+        // Valider le budget de l'annonce
+        if (annonce.getBudgetannonce() < 10000 || annonce.getBudgetannonce() > 100000) {
+            //return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Le budget de l'annonce doit être compris entre 10 000 et 100 000 francs");
+            annonce.setBudgetannonce(budgetannonce);
+        }else {
+            return ("Le budget de l'annonce doit être compris entre 10 000 et 100 000 francs");
+        }
+
+
         annonce.setDateDebut(dateDebut);
         annonce.setDateFin(dateFin);
         //annonce.setAnnonceur(annonceur);
