@@ -124,57 +124,6 @@ public class AnnonceController {
         // Afficher la différence entre les deux dates
         System.out.println("La différence entre les dates de début et de fin est de " + difference.toDays() + " jours.");
 
-
-        //else {
-
-        // ("Le budget de l'annonce doit être compris entre 10 000 et 100 000 francs");
-        //}
-
-        //////////////////      commparer de date    //////////
-
-        /*if (annonce.isEndDateBeforeStartDate()) {
-            ResponseEntity.badRequest().body("La date de fin doit être postérieure à la date de début.");
-        }
-
-        // Enregistrer l'événement dans la base de données.
-        ResponseEntity.ok("L'événement a été enregistré avec succès.");
-    }*/
-        //Date t=new Date();
-        //Date date = new SimpleDateFormat("dd/MM/yyyy").parse(dateDebut);
-        //Date date1 = new SimpleDateFormat("dd/MM/yyyy").parse(dateFin);
-        //System.err.println(date);
-
-        //String dateString= "15/02/2023";
-        /*SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy");
-        Date date = new SimpleDateFormat("dd/MM/yyyy").parse(dateDebut);
-        Date date1 = new SimpleDateFormat("dd/MM/yyyy").parse(dateFin);*/
-
-
-        //Ajouter 1 jours à la date de début pour obtenir la fin
-        /*Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        cal.after( 1);
-        Date date1 = cal.getTime();*/
-        // Vérifier que la date de fin est postérieure à la date de début
-        /*if (date1.before(date)){
-            // Si la date de fin est avant la date de début, ajouter un jour supplémentaire
-            cal.after(1);
-            date1 = cal.getTime();
-        }*/
-
-        //Date date1 = dateFormat.parse(dateString);
-
-
-        //if(t.before(dateFin)){
-
-
-
-
-        //}
-        //  else {
-        //    System.out.println("date de fin infere à today");
-        //}
-
         annonce.setAnnonceur(annonceur);
         annonce.setNotification(notification);
         SiteWebPopulaire siteWebPopulaire = siteWebPopulaireRepository.getReferenceById(siteWebPopulaires);
@@ -225,13 +174,13 @@ public class AnnonceController {
      @Param("descriptionannonce") String descriptionannonce,
             /* @Param("ciblediffusionannonce") String ciblediffusionannonce,*/
      @Param("budgetannonce") int budgetannonce,
-     @Param("dateDebut") Date dateDebut,
-     @Param("dateFin") Date dateFin,
+     @Param("dateDebut") String dateDebut,
+     @Param("dateFin") String dateFin,
      @Param("image") MultipartFile image
 //     @PathVariable("siteWebPopulaires") Long siteWebPopulaires,
 //     @PathVariable(value = "idannonceur") Long idannonceur,
 //     @PathVariable(value = "idnotification") Long idNotif
-    ) throws IOException {
+    ) throws IOException, ParseException {
         //System.err.println(idNotif);
         //Annonceur annonceur= annonceurRepository.findById(idannonceur).get();
         //System.err.println("kjhbvg"+annonceur);
@@ -240,18 +189,48 @@ public class AnnonceController {
         Annonce annonce = new Annonce();
         annonce.setTitreannonce(titreannonce);
         annonce.setDescriptionannonce(descriptionannonce);
-        /*annonce.setCiblediffusionannonce(ciblediffusionannonce);*/
-        // Valider le budget de l'annonce
-        if (annonce.getBudgetannonce() < 10000 || annonce.getBudgetannonce() > 100000) {
-            //return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Le budget de l'annonce doit être compris entre 10 000 et 100 000 francs");
-            annonce.setBudgetannonce(budgetannonce);
-        }else {
-            return ("Le budget de l'annonce doit être compris entre 10 000 et 100 000 francs");
+
+        ////Comparaison des dates ////////
+        SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = outputFormat.parse(dateDebut);
+        Date date1 = outputFormat.parse(dateFin);
+
+        annonce.setDateDebut(date);
+        // Vérifier si la date de fin est antérieure ou égale à la date de début
+        if (date1.compareTo(date) <= 0) {
+            // Ajouter des jours à la date de fin jusqu'à ce qu'elle soit postérieure à la date de début
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date1);
+
+            while (cal.getTime().compareTo(date) <= 0) {
+                cal.add(Calendar.DATE, 1);
+            }
+
+            date1 = cal.getTime();
         }
+        annonce.setDateFin(date1);
+
+        // Sérialiser l'objet Annonce en JSON
+        ObjectMapper objectMapper = new ObjectMapper();
+        String annonceJson = objectMapper.writeValueAsString(annonce);
+
+        // Afficher l'objet Annonce en JSON dans la console
+        System.out.println("Annonce : " + annonceJson);
 
 
-        annonce.setDateDebut(dateDebut);
-        annonce.setDateFin(dateFin);
+        // Afficher les dates de début et de fin
+        System.out.println("Date de début : " + date);
+        System.out.println("Date de fin : " + date1);
+
+        //CAlculer la difference entre les deux dates
+        Instant instantDebut = date.toInstant();
+        Instant instantFin = date1.toInstant();
+        Duration difference = Duration.between(instantDebut, instantFin);
+
+        // Afficher la différence entre les deux dates
+        System.out.println("La différence entre les dates de début et de fin est de " + difference.toDays() + " jours.");
+
+
         //annonce.setAnnonceur(annonceur);
         //annonce.setNotification(notification);
         //SiteWebPopulaire siteWebPopulaire = siteWebPopulaireRepository.getReferenceById(siteWebPopulaires);
@@ -265,10 +244,26 @@ public class AnnonceController {
         annonce.setImage(img);
         String uploaDir = "C:\\Users\\Youssouf DJIRE\\Desktop\\Ki-Lakodon\\src\\assets\\image";
         ConfigImage.saveimg(uploaDir, img, image);
+        /////Plafond du budget////////////
+        if (budgetannonce >= 10000 ) {
+            annonce.setBudgetannonce(budgetannonce);
+
+            /*String to = annonce.getAnnonceur().getEmail();
+            String subject = "Aw Bissimla Ki-Lakodon Sanfai, Bonjour sur Ki-Lakodon, Hello you are welcome on Ki-Lakodon " + annonce.getAnnonceur().getUsername() + ",\n\n" ;
+            String text = "Bonjour " + annonce.getAnnonceur().getUsername() + ",\n\nAdresse: " + annonce.getAnnonceur().getAdrresseannonceur() + ",\n\nNuméro: " + annonce.getAnnonceur().getNumeroannonceur() + ",\n\nVotre annonce est en cours de traitement, Veiller patienter... Votre annonce sera publiée dans 12 ou 24 heures sur " + annonce.getSiteWebPopulaires().get(0).getNomsitepopulaire() + ",\n\n";
+
+            emailService.sendEmail(to, subject, text);*/
+            annonceService.modifier(idannonce,annonce);
+            return  ResponseEntity.status(HttpStatus.OK).body("votre annonce à été modifier avec succèss");
+        }
 
 
 
-        return annonceService.modifier(idannonce,annonce);
+        return   ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Le budget de l'annonce doit être compris entre 10 000 et 100 000 francs");
+
+
+
+
     }
 
     @DeleteMapping("/suprimer/{idannonce}")
