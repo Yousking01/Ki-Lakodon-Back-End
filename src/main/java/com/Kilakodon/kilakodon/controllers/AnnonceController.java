@@ -12,6 +12,9 @@ import com.Kilakodon.kilakodon.repository.AnnonceRepository;
 import com.Kilakodon.kilakodon.repository.NotificationRepository;
 import com.Kilakodon.kilakodon.repository.SiteWebPopulaireRepository;
 import com.Kilakodon.kilakodon.security.services.AnnonceService;
+import com.Kilakodon.kilakodon.security.services.EmailService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -50,6 +53,9 @@ public class AnnonceController {
     @Autowired
     private AnnonceRepository annonceRepository;
 
+    //////:Email-sender de config
+    @Autowired
+    private EmailService emailService;
     @PostMapping("/creer/{idnotification}/{idannonceur}/{siteWebPopulaires}")
     public Object create(@Param("titreannonce") String titreannonce,
                           @Param("descriptionannonce") String descriptionannonce,
@@ -61,7 +67,7 @@ public class AnnonceController {
                           @PathVariable("siteWebPopulaires") Long siteWebPopulaires,
                           @PathVariable(value = "idannonceur") Long idannonceur,
                           @PathVariable(value = "idnotification") Long idNotif
-    ) throws IOException, ParseException {
+    ) throws IOException, ParseException, MessagingException {
         System.err.println(idNotif);
         Annnonceur annonceur= annonceurRepository.findById(idannonceur).get();
         System.err.println("kjhbvg"+annonceur);
@@ -77,6 +83,48 @@ public class AnnonceController {
         // Valider le budget de l'annonce
         System.out.println("le budjettttttttttttttt");
         System.out.println(annonce.getBudgetannonce());
+
+        ////Comparaison des dates ////////
+        SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = outputFormat.parse(dateDebut);
+        Date date1 = outputFormat.parse(dateFin);
+
+        annonce.setDateDebut(date);
+        // Vérifier si la date de fin est antérieure ou égale à la date de début
+        if (date1.compareTo(date) <= 0) {
+            // Ajouter des jours à la date de fin jusqu'à ce qu'elle soit postérieure à la date de début
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date1);
+
+            while (cal.getTime().compareTo(date) <= 0) {
+                cal.add(Calendar.DATE, 1);
+            }
+
+            date1 = cal.getTime();
+        }
+        annonce.setDateFin(date1);
+
+        // Sérialiser l'objet Annonce en JSON
+        ObjectMapper objectMapper = new ObjectMapper();
+        String annonceJson = objectMapper.writeValueAsString(annonce);
+
+        // Afficher l'objet Annonce en JSON dans la console
+        System.out.println("Annonce : " + annonceJson);
+
+
+        // Afficher les dates de début et de fin
+        System.out.println("Date de début : " + date);
+        System.out.println("Date de fin : " + date1);
+
+        //CAlculer la difference entre les deux dates
+        Instant instantDebut = date.toInstant();
+        Instant instantFin = date1.toInstant();
+        Duration difference = Duration.between(instantDebut, instantFin);
+
+        // Afficher la différence entre les deux dates
+        System.out.println("La différence entre les dates de début et de fin est de " + difference.toDays() + " jours.");
+
+
         //else {
 
         // ("Le budget de l'annonce doit être compris entre 10 000 et 100 000 francs");
@@ -96,25 +144,23 @@ public class AnnonceController {
         //Date date1 = new SimpleDateFormat("dd/MM/yyyy").parse(dateFin);
         //System.err.println(date);
 
-        String dateString= "15/02/2023";
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        Date date =dateFormat.parse(dateString);
-        annonce.setDateDebut(date);
+        //String dateString= "15/02/2023";
+        /*SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy");
+        Date date = new SimpleDateFormat("dd/MM/yyyy").parse(dateDebut);
+        Date date1 = new SimpleDateFormat("dd/MM/yyyy").parse(dateFin);*/
+
 
         //Ajouter 1 jours à la date de début pour obtenir la fin
-        Calendar cal = Calendar.getInstance();
+        /*Calendar cal = Calendar.getInstance();
         cal.setTime(date);
-        cal.add(Calendar.DATE, 1);
-        Date date1 = cal.getTime();
-        annonce.setDateFin(date1);
-
-        //CAlculer la difference entre les deux dates
-        Instant instantDebut = date.toInstant();
-        Instant instantFin = date1.toInstant();
-        Duration difference = Duration.between(instantDebut, instantFin);
-
-        // Afficher la différence entre les deux dates
-        System.out.println("La différence entre les dates de début et de fin est de " + difference.toDays() + " jours.");
+        cal.after( 1);
+        Date date1 = cal.getTime();*/
+        // Vérifier que la date de fin est postérieure à la date de début
+        /*if (date1.before(date)){
+            // Si la date de fin est avant la date de début, ajouter un jour supplémentaire
+            cal.after(1);
+            date1 = cal.getTime();
+        }*/
 
         //Date date1 = dateFormat.parse(dateString);
 
@@ -144,8 +190,13 @@ public class AnnonceController {
         ConfigImage.saveimg(uploaDir, img, image);
         if (budgetannonce >= 10000 ) {
             annonce.setBudgetannonce(budgetannonce);
-            return annonceService.creer(annonce);
 
+            String to = annonce.getAnnonceur().getEmail();
+            String subject = "Aw Bissimla Ki-Lakodon Sanfai, Bonjour sur Ki-Lakodon, Hello you are welcome on Ki-Lakodon " + annonce.getAnnonceur().getUsername() + ",\n\n" ;
+            String text = "Bonjour " + annonce.getAnnonceur().getUsername() + ",\n\nAdresse: " + annonce.getAnnonceur().getAdrresseannonceur() + ",\n\nNuméro: " + annonce.getAnnonceur().getNumeroannonceur() + ",\n\nVotre annonce est en cours de traitement, Veiller patienter... Votre annonce sera publiée dans 12 ou 24 heures sur " + annonce.getSiteWebPopulaires().get(0).getNomsitepopulaire() + ",\n\n";
+
+            emailService.sendEmail(to, subject, text);
+            return annonceService.creer(annonce);
         }
 
 

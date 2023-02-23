@@ -2,6 +2,7 @@
 package com.Kilakodon.kilakodon.models;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -58,12 +59,14 @@ public class Annonce {
     @Column(length = 20)
     @NotNull
     @FutureOrPresent
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private Date dateDebut;
 
     //@JsonFormat(pattern = "aaaa-MM-jj", shape = JsonFormat.Shape.STRING)
     @Column(length = 20)
     @NotNull
     @FutureOrPresent
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private Date dateFin;
 
 ////////commparaison des dates/////////
