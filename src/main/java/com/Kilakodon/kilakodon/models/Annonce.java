@@ -39,10 +39,18 @@ public class Annonce {
 
     @Column(length = 20)
     @Min(value = 10000, message = "Le budget de l'annonce ne doit pas être inférieur à 10 000 francs")
-    private int budgetannonce;
+    private int prixannonce;
 
-    public Annonce(int budgetannonce) {
-        this.budgetannonce = budgetannonce;
+    public int getPrixannonce() {
+        return prixannonce;
+    }
+
+    public void setPrixannonce(int prixannonce) {
+        this.prixannonce = prixannonce;
+    }
+
+    public Annonce(int prixannonce) {
+        this.prixannonce = prixannonce;
     }
 
     private String image;
@@ -144,14 +152,14 @@ public Long getIdannocne() {
         this.ciblediffusionannonce = ciblediffusionannonce;
     }*/
 
-    public int getBudgetannonce() {
-        return budgetannonce;
+   /* public int getBudgetannonce() {
+        return prixannonce;
     }
 
-    public Object setBudgetannonce(int budgetannonce) {
-        this.budgetannonce = budgetannonce;
+    public Object setBudgetannonce(int prixannonce) {
+        this.prixannonce = prixannonce;
         return ("le bugdet doit etre superieur à 10000fr");
-    }
+    }*/
 
     public Date getDateDebut() {
         return dateDebut;

@@ -38,7 +38,7 @@ public class AnnonceServiceImpl implements AnnonceService{
                     p.setTitreannonce(annonce.getTitreannonce());
                     p.setDescriptionannonce(annonce.getDescriptionannonce());
                     /*p.setCiblediffusionannonce(annonce.getCiblediffusionannonce());*/
-                    p.setBudgetannonce(annonce.getBudgetannonce());
+                    p.setPrixannonce(annonce.getPrixannonce());
                     p.setDateFin(annonce.getDateFin());
                     p.setImage(annonce.getImage());
                     p.setAnnonceur(p.getAnnonceur());

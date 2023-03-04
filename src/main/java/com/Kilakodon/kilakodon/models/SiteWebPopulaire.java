@@ -3,7 +3,10 @@ package com.Kilakodon.kilakodon.models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,21 +15,24 @@ import java.util.List;
 @Table(name = "sitewebpopulaire")
 @AllArgsConstructor
 @NoArgsConstructor
-public class SiteWebPopulaire {
+@SuperBuilder
+@Getter
+@Setter
+public class SiteWebPopulaire extends Utilisateur {
 
-    @Id
+    /*@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 
     @Column(name = "idsitewebpopulaire")
-    private Long idsitepopulaire;
+    private Long idsitepopulaire;*/
 
-    public Long getIdsitepopulaire() {
+   /* public Long getIdsitepopulaire() {
         return idsitepopulaire;
     }
 
     public void setIdsitepopulaire(Long idsitepopulaire) {
         this.idsitepopulaire = idsitepopulaire;
-    }
+    }*/
 
     public List<Annonce> getAnnonces() {
         return annonces;

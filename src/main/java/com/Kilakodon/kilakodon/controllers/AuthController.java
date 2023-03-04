@@ -206,8 +206,8 @@ public class AuthController {
                         }
                         //.orElseThrow(() -> new RuntimeException("Error: Role non fournit."));
                         break;
-                    case "ROLE_ANNONCEUR":
-                        Role annonceurRole = roleRepository.findByName(ERole.ROLE_ANNONCEUR);
+                    case "ANNONCEUR":
+                        Role annonceurRole = roleRepository.findByName(ERole.ANNONCEUR);
                         if (annonceurRole == null) {
                             ResponseEntity
                                     .badRequest()
@@ -217,8 +217,8 @@ public class AuthController {
                         }
                         //.orElseThrow(() -> new RuntimeException("Error: Role non fournit."));
                         break;
-                    case "ROLE_SITEWEB":
-                        Role siteWeb = roleRepository.findByName(ERole.ROLE_SITEWEB);
+                    case "SITE_WEB":
+                        Role siteWeb = roleRepository.findByName(ERole.SITE_WEB);
                         if (siteWeb == null) {
                             ResponseEntity
                                     .badRequest()

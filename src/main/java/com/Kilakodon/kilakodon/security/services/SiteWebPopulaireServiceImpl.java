@@ -30,9 +30,9 @@ public class SiteWebPopulaireServiceImpl implements SiteWebPopulaireService {
     }
 
     @Override
-    public SiteWebPopulaire modifier(Long idsitepopulaire, SiteWebPopulaire siteWebPopulaire) {
+    public SiteWebPopulaire modifier(Long id, SiteWebPopulaire siteWebPopulaire) {
 
-        return siteWebPopulaireRepository.findById(idsitepopulaire)
+        return siteWebPopulaireRepository.findById(id)
                 .map(p->{
                     p.setNomsitepopulaire(siteWebPopulaire.getNomsitepopulaire());
                     p.setURL(siteWebPopulaire.getURL());
@@ -41,8 +41,8 @@ public class SiteWebPopulaireServiceImpl implements SiteWebPopulaireService {
     }
 
     @Override
-    public String suprimer(Long idsitepopulaire) {
-        siteWebPopulaireRepository.deleteById(idsitepopulaire);
+    public String suprimer(Long id) {
+        siteWebPopulaireRepository.deleteById(id);
         return "Site Web Suprimer avec succès !!!";
     }
 }

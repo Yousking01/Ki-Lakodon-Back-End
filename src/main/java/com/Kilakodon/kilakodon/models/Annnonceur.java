@@ -27,9 +27,9 @@ public class Annnonceur extends Utilisateur  {
     private int budgetannonceur;
 
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade=CascadeType.ALL)
+    /*@ManyToOne(fetch = FetchType.LAZY, cascade=CascadeType.ALL)
     @JoinColumn(name = "id_espacepub")
-    private EspacePub espacePub;
+    private EspacePub espacePub;*/
 
     @JsonIgnore
     @OneToMany

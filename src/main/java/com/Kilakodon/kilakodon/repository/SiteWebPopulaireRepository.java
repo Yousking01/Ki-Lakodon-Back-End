@@ -20,8 +20,8 @@ public interface SiteWebPopulaireRepository extends JpaRepository<SiteWebPopulai
 
     @Transactional
     @Modifying
-    @Query(value = "INSERT INTO `annonce_site_web_populaires`(`annonce_id`, `site_web_populaires_idsitewebpopulaire`) VALUES (:annonce_id,':site_web_populaires_idsitewebpopulaire')",nativeQuery = true)
-    void inserAsite(@Param("annonce_id") Long annonce_id, @Param("site_web_populaires_idsitewebpopulaire") Long site_web_populaires_idsitewebpopulaire);
+    @Query(value = "INSERT INTO `annonce_site_web_populaires`(`annonce_id`, `site_web_populaires_id`) VALUES (:annonce_id,':site_web_populaires_id')",nativeQuery = true)
+    void inserAsite(@Param("annonce_id") Long annonce_id, @Param("site_web_populaires_id") Long site_web_populaires_id);
 
 
 

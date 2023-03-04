@@ -11,15 +11,26 @@ import com.Kilakodon.kilakodon.repository.AnnnonceurRepository;
 import com.Kilakodon.kilakodon.repository.AnnonceRepository;
 import com.Kilakodon.kilakodon.repository.NotificationRepository;
 import com.Kilakodon.kilakodon.repository.SiteWebPopulaireRepository;
+import com.Kilakodon.kilakodon.security.services.AnnnonceurService;
 import com.Kilakodon.kilakodon.security.services.AnnonceService;
 import com.Kilakodon.kilakodon.security.services.EmailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.activation.FileDataSource;
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeBodyPart;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,10 +40,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/auth/annonce")
@@ -44,15 +52,20 @@ public class AnnonceController {
 
     @Autowired
     private final AnnonceService annonceService;
+    /*@Autowired
+    private final AnnnonceurService annnonceurService;*/
     @Autowired
     private final AnnnonceurRepository annonceurRepository;
     @Autowired
     private final NotificationRepository notificationRepository;
+
     @Autowired
     private SiteWebPopulaireRepository siteWebPopulaireRepository;
     @Autowired
     private AnnonceRepository annonceRepository;
 
+    @Autowired
+    private JavaMailSender mailSender;
     //////:Email-sender de config
     @Autowired
     private EmailService emailService;
@@ -60,7 +73,7 @@ public class AnnonceController {
     public Object create(@Param("titreannonce") String titreannonce,
                           @Param("descriptionannonce") String descriptionannonce,
             /* @Param("ciblediffusionannonce") String ciblediffusionannonce,*/
-                          @Param("budgetannonce") int budgetannonce,
+                          @Param("budgetannonce") int prixannonce,
                           @Param("dateDebut") String dateDebut,
                           @Param("dateFin") String dateFin,
                           @Param("image") MultipartFile image,
@@ -82,14 +95,18 @@ public class AnnonceController {
         ///////////plafond de budget//////
         // Valider le budget de l'annonce
         System.out.println("le budjettttttttttttttt");
-        System.out.println(annonce.getBudgetannonce());
+        System.out.println(annonce.getPrixannonce());
 
         ////Comparaison des dates ////////
-        SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy");
-        Date date = outputFormat.parse(dateDebut);
-        Date date1 = outputFormat.parse(dateFin);
+        //SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy");
+        /*SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);*/
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        Date date = inputFormat.parse(dateDebut);
+        Date date1 = inputFormat.parse(dateFin);
 
         annonce.setDateDebut(date);
+        System.out.println("la date=====" + date);
         // Vérifier si la date de fin est antérieure ou égale à la date de début
         if (date1.compareTo(date) <= 0) {
             // Ajouter des jours à la date de fin jusqu'à ce qu'elle soit postérieure à la date de début
@@ -137,22 +154,76 @@ public class AnnonceController {
         annonce.setImage(img);
         String uploaDir = "C:\\Users\\Youssouf DJIRE\\Desktop\\Ki-Lakodon\\src\\assets\\image";
         ConfigImage.saveimg(uploaDir, img, image);
-        if (budgetannonce >= 10000 ) {
-            annonce.setBudgetannonce(budgetannonce);
+
+            annonce.setPrixannonce(prixannonce);
+            ////////ENVOIE DE MAIL POUR INFORMATION DE LA RECEPTION DE L'ANNONCE////
 
             String to = annonce.getAnnonceur().getEmail();
-            String subject = "Aw Bissimla Ki-Lakodon Sanfai, Bonjour sur Ki-Lakodon, Hello you are welcome on Ki-Lakodon " + annonce.getAnnonceur().getUsername() + ",\n\n" ;
-            String text = "Bonjour " + annonce.getAnnonceur().getUsername() + ",\n\nAdresse: " + annonce.getAnnonceur().getAdrresseannonceur() + ",\n\nNuméro: " + annonce.getAnnonceur().getNumeroannonceur() + ",\n\nVotre annonce est en cours de traitement, Veiller patienter... Votre annonce sera publiée dans 12 ou 24 heures sur " + annonce.getSiteWebPopulaires().get(0).getNomsitepopulaire() + ",\n\n";
+            String subject = "Aw Bissimla ,Hello you are welcome,Bonjour , Ki-Lakodon "
+                    + annonce.getAnnonceur().getUsername() + ",\n";
+            String text = "Bonjour " + annonce.getAnnonceur().getUsername() + ",\n"
+                                + "Adresse: " + annonce.getAnnonceur().getAdrresseannonceur() + ",\n"
+                                + "Numéro: " + annonce.getAnnonceur().getNumeroannonceur() + ",\n"
+                                + "Votre annonce est en cours de traitement, Veiller patienter... Votre annonce sera publiée dans 12 ou 24 heures sur " + annonce.getSiteWebPopulaires().get(0).getNomsitepopulaire() + ",\n";
 
             emailService.sendEmail(to, subject, text);
-            return annonceService.creer(annonce);
+////////////////RECUPERATION DES DONNEES DE L'ANNONCE PAR MAIL VERS LE SITE DE PUB///////////
+            try {
+                StringBuilder siteNames = new StringBuilder();
+                List<SiteWebPopulaire> siteList = annonce.getSiteWebPopulaires();
+                for (SiteWebPopulaire site : siteList) {
+                    siteNames.append(site.getNomsitepopulaire()).append(", ");
+                }
+                siteNames.setLength(siteNames.length() - 2);
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true);
+                int index = 0;
+                //index
+                // Vérifier que la liste des sites web populaires contient des éléments
+                if (annonce.getSiteWebPopulaires() != null && annonce.getSiteWebPopulaires().size() > 0) {
+
+                    // Récupérer l'e-mail du premier site web populaire de la liste
+                    String emailsiteweb = annonce.getSiteWebPopulaires().get(index).getEmail();
+
+                    // Définir l'e-mail de l'annonceur comme destinataire
+                    helper.setTo(emailsiteweb);
+                }
+                //helper.setTo("djireyoussouf1999@gmail.com");
+                helper.setSubject("Nouvelle annonce : " + titreannonce);
+
+                // Créer la première partie du message avec le texte de l'e-mail
+                MimeBodyPart textPart = new MimeBodyPart();
+                textPart.setText("Une nouvelle annonce a été créée avec les informations suivantes : \n"
+                        + "Prix : " + annonce.getPrixannonce() + "\n"
+                        + "Annonceur : " + annonce.getAnnonceur().getUsername() + "\n"
+                        + "Adresse de l'annonceur : " + annonce.getAnnonceur().getAdrresseannonceur() + "\n"
+                        + "Téléphone de l'annonceur : " + annonce.getAnnonceur().getNumeroannonceur() + "\n"
+                        + "Date de début : " + annonce.getDateDebut() + "\n"
+                        + "Date de fin : " + annonce.getDateFin() + "\n"
+                        + "Description : " + annonce.getDescriptionannonce() + "\n"
+                        + "Sites de publicité : " + siteNames.toString() + "\n");
+
+                // Ajouter l'image en tant que pièce jointe
+                MimeBodyPart imagePart = new MimeBodyPart();
+                ByteArrayDataSource dataSource = new ByteArrayDataSource(image.getBytes(), image.getContentType());
+                imagePart.setDataHandler(new DataHandler(dataSource));
+                imagePart.setFileName("image.jpg");
+
+                // Ajouter les parties au message
+                MimeMultipart multipart = new MimeMultipart();
+                multipart.addBodyPart(textPart);
+                multipart.addBodyPart(imagePart);
+                message.setContent(multipart);
+
+                mailSender.send(message);
+                annonceService.creer(annonce);
+                return new ResponseEntity<>("Email envoyé avec succès !", HttpStatus.OK);
+            } catch (MessagingException | IOException e) {
+                return new ResponseEntity<>("Erreur lors de l'envoi de l'email.", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
         }
 
 
-
-        return   ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Le budget de l'annonce doit être compris entre 10 000 et 100 000 francs");
-
-    }
 
     @GetMapping("/lire")
     public List<Annonce> read(){
@@ -164,6 +235,11 @@ public class AnnonceController {
         SiteWebPopulaire siteWebPopulaire = siteWebPopulaireRepository.getReferenceById(idSite);
         return annonceRepository.findBySiteWebPopulaires(siteWebPopulaire);
     }
+    @GetMapping("/lireannonceparidannonceur/{id}")
+    public  List<Annonce> lire1(@PathVariable("id") Long id){
+        Annnonceur annnonceur = annonceurRepository.getReferenceById(id);
+        return annonceRepository.findByAnnonceur(annnonceur);
+    }
 
     @PutMapping("/modifier/{idannonce}")
     public Object update
@@ -173,7 +249,7 @@ public class AnnonceController {
      @Param("titreannonce") String titreannonce,
      @Param("descriptionannonce") String descriptionannonce,
             /* @Param("ciblediffusionannonce") String ciblediffusionannonce,*/
-     @Param("budgetannonce") int budgetannonce,
+     @Param("budgetannonce") int prixannonce,
      @Param("dateDebut") String dateDebut,
      @Param("dateFin") String dateFin,
      @Param("image") MultipartFile image
@@ -191,11 +267,17 @@ public class AnnonceController {
         annonce.setDescriptionannonce(descriptionannonce);
 
         ////Comparaison des dates ////////
-        SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy");
-        Date date = outputFormat.parse(dateDebut);
-        Date date1 = outputFormat.parse(dateFin);
+        //SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy");
+        /*SimpleDateFormat inputFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);*/
+        SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd");
+        //Date date = inputFormat.parse(dateDebut);
+        /*Date date = outputFormat.parse(dateDebut);
+        Date date1 = outputFormat.parse(dateFin);*/
+        Date date = inputFormat.parse(dateDebut);
+        Date date1 = inputFormat.parse(dateFin);
 
         annonce.setDateDebut(date);
+        System.out.println("la date=====" + date);
         // Vérifier si la date de fin est antérieure ou égale à la date de début
         if (date1.compareTo(date) <= 0) {
             // Ajouter des jours à la date de fin jusqu'à ce qu'elle soit postérieure à la date de début
@@ -245,26 +327,64 @@ public class AnnonceController {
         String uploaDir = "C:\\Users\\Youssouf DJIRE\\Desktop\\Ki-Lakodon\\src\\assets\\image";
         ConfigImage.saveimg(uploaDir, img, image);
         /////Plafond du budget////////////
-        if (budgetannonce >= 10000 ) {
-            annonce.setBudgetannonce(budgetannonce);
+        //if (budgetannonce >= 10000 ) {
+            annonce.setPrixannonce(prixannonce);
 
-            /*String to = annonce.getAnnonceur().getEmail();
-            String subject = "Aw Bissimla Ki-Lakodon Sanfai, Bonjour sur Ki-Lakodon, Hello you are welcome on Ki-Lakodon " + annonce.getAnnonceur().getUsername() + ",\n\n" ;
-            String text = "Bonjour " + annonce.getAnnonceur().getUsername() + ",\n\nAdresse: " + annonce.getAnnonceur().getAdrresseannonceur() + ",\n\nNuméro: " + annonce.getAnnonceur().getNumeroannonceur() + ",\n\nVotre annonce est en cours de traitement, Veiller patienter... Votre annonce sera publiée dans 12 ou 24 heures sur " + annonce.getSiteWebPopulaires().get(0).getNomsitepopulaire() + ",\n\n";
+        ////////////////RECUPERATION DES DONNEES DE L'ANNONCE PAR MAIL VERS LE SITE DE PUB///////////
+        try {
+            StringBuilder siteNames = new StringBuilder();
+            List<SiteWebPopulaire> siteList = annonce.getSiteWebPopulaires();
+            for (SiteWebPopulaire site : siteList) {
+                siteNames.append(site.getUsername()).append(", ");
+            }
+            siteNames.setLength(siteNames.length() - 2);
 
-            emailService.sendEmail(to, subject, text);*/
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setTo("djireyoussouf1999@gmail.com");
+            helper.setSubject("Nouvelle annonce : " + titreannonce);
+
+            // Créer la première partie du message avec le texte de l'e-mail
+            MimeBodyPart textPart = new MimeBodyPart();
+            textPart.setText("Une nouvelle annonce a été créée avec les informations suivantes : \n"
+                    + "Prix : " + annonce.getPrixannonce() + "\n"
+                    + "Annonceur : " + annonce.getAnnonceur().getUsername() + "\n"
+                    + "Annonceur : " + annonce.getAnnonceur().getAdrresseannonceur() + "\n"
+                    + "Annonceur : " + annonce.getAnnonceur().getNumeroannonceur() + "\n"
+                    + "Date de début : " + annonce.getDateDebut() + "\n"
+                    + "Date de fin : " + annonce.getDateFin() + "\n"
+                    + "Description : " + annonce.getDescriptionannonce() + "\n"
+                    + "Sites de publicité : " + siteNames.toString() + "\n");
+
+            // Ajouter l'image en tant que pièce jointe
+            MimeBodyPart imagePart = new MimeBodyPart();
+            ByteArrayDataSource dataSource = new ByteArrayDataSource(image.getBytes(), image.getContentType());
+            imagePart.setDataHandler(new DataHandler(dataSource));
+            imagePart.setFileName("image.jpg");
+
+            // Ajouter les parties au message
+            MimeMultipart multipart = new MimeMultipart();
+            multipart.addBodyPart(textPart);
+            multipart.addBodyPart(imagePart);
+            message.setContent(multipart);
+
+            mailSender.send(message);
+
             annonceService.modifier(idannonce,annonce);
-            return  ResponseEntity.status(HttpStatus.OK).body("votre annonce à été modifier avec succèss");
+            return new ResponseEntity<>("Email envoyé avec succès !", HttpStatus.OK);
+        } catch (MessagingException | IOException e) {
+            return new ResponseEntity<>("Erreur lors de l'envoi de l'email.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-
-
-        return   ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Le budget de l'annonce doit être compris entre 10 000 et 100 000 francs");
-
-
-
-
     }
+
+
+
+      /*  return   ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Le budget de l'annonce doit être compris entre 10 000 et 100 000 francs");
+
+
+
+
+    }*/
 
     @DeleteMapping("/suprimer/{idannonce}")
     public String suprimer(@PathVariable Long idannonce){

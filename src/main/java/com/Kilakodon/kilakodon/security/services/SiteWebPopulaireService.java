@@ -13,9 +13,9 @@ public interface SiteWebPopulaireService {
 
     List<SiteWebPopulaire> lire();
 
-    SiteWebPopulaire modifier(Long idsitepopulaire, SiteWebPopulaire siteWebPopulaire);
+    SiteWebPopulaire modifier(Long id, SiteWebPopulaire siteWebPopulaire);
 
-    String suprimer(Long idsitepopulaire);
+    String suprimer(Long id);
 
 
 }

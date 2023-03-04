@@ -26,6 +26,9 @@ public class SiteWebPopulaireController {
 
     @PostMapping("/creer")
     public SiteWebPopulaire creer(
+            @Param("username") String username,
+            @Param("email") String email,
+            @Param("password") String password,
             //@RequestBody SiteWebPopulaire siteWebPopulaire
             @Param("nomsitepopulaire") String nomsitepopulaire,
             @Param("URL") String URL,
@@ -38,6 +41,9 @@ public class SiteWebPopulaireController {
 
 
         SiteWebPopulaire siteWebPopulaire = new SiteWebPopulaire();
+        siteWebPopulaire.setUsername(username);
+        siteWebPopulaire.setEmail(email);
+        siteWebPopulaire.setPassword(password);
         siteWebPopulaire.setNomsitepopulaire(nomsitepopulaire);
         siteWebPopulaire.setURL(URL);
 
@@ -57,16 +63,41 @@ public class SiteWebPopulaireController {
     @GetMapping("/lire/{id}")
     public SiteWebPopulaire lirebyId(@PathVariable("id") Long id) {
         System.err.println(siteWebPopulaireRepository.getReferenceById(id).getAnnonces());
-        return siteWebPopulaireRepository.getReferenceById(id);
+        System.out.println("je suis ici=========="+siteWebPopulaireRepository.findById(id).get().getURL());
+        return siteWebPopulaireRepository.findById(id).get();
+        //return siteWebPopulaireRepository.getReferenceById(id);
     }
 
-    @PutMapping("/modifier/{idsitepopulaire}")
-    public SiteWebPopulaire modifier(@PathVariable Long idsitepopulaire, @RequestBody SiteWebPopulaire siteWebPopulaire) {
-        return siteWebPopulaireService.modifier(idsitepopulaire, siteWebPopulaire);
+    @PutMapping("/modifier/{id}")
+    public SiteWebPopulaire modifier(
+            /*@PathVariable Long idsitepopulaire, @RequestBody SiteWebPopulaire siteWebPopulaire*/
+        @PathVariable Long id,
+        @Param("username") String username,
+        @Param("email") String email,
+        @Param("password") String password,
+        @Param("nomsitepopulaire") String nomsitepopulaire,
+        @Param("URL") String URL,
+        @Param("image") MultipartFile image
+    ) throws IOException {
+
+
+        SiteWebPopulaire siteWebPopulaire = new SiteWebPopulaire();
+        siteWebPopulaire.setUsername(username);
+        siteWebPopulaire.setEmail(email);
+        siteWebPopulaire.setPassword(password);
+        siteWebPopulaire.setNomsitepopulaire(nomsitepopulaire);
+        siteWebPopulaire.setURL(URL);
+
+        String img = StringUtils.cleanPath(image.getOriginalFilename());
+        siteWebPopulaire.setImage(img);
+        String uploaDir = "C:\\Users\\Youssouf DJIRE\\Desktop\\Ki-Lakodon\\src\\assets\\image";
+        ConfigImage.saveimg(uploaDir, img, image);
+
+        return siteWebPopulaireService.modifier(id, siteWebPopulaire);
     }
-    @DeleteMapping("suprimer/{idsitepopulaire}")
-    public String suprimer(@PathVariable Long idsitepopulaire) {
-        return siteWebPopulaireService.suprimer(idsitepopulaire);
+    @DeleteMapping("suprimer/{id}")
+    public String suprimer(@PathVariable Long id) {
+        return siteWebPopulaireService.suprimer(id);
     }
 
 

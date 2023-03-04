@@ -53,6 +53,11 @@ public class KilakodonApplication implements CommandLineRunner{
 	private AdminRepository adminRepository;
 
 	@Autowired
+	private KilakodonRepository kilakodonRepository;
+
+
+
+	@Autowired
 	private NotificationRepository notificationRepository;
 
 	@Autowired
@@ -78,8 +83,8 @@ public class KilakodonApplication implements CommandLineRunner{
 	public void run(String... args) throws Exception {
 		if (roleRepository.findAll().size() == 0) {
 			Role r1 = userService.saveRole(new Role(ROLE_ADMIN));
-			Role r2 = userService.saveRole(new Role(ROLE_SITEWEB));
-			Role r3 = userService.saveRole(new Role(ROLE_ANNONCEUR));
+			Role r2 = userService.saveRole(new Role(SITE_WEB));
+			Role r3 = userService.saveRole(new Role(ANNONCEUR));
 			Role r4 = userService.saveRole(new Role(ROLE_USER));
 		}
 
@@ -93,19 +98,9 @@ public class KilakodonApplication implements CommandLineRunner{
 			Role role1= roleRepository.findByName(ERole.ROLE_ADMIN);
 			System.err.println(role1.getName());
 			roles.add(role1);
-			/*roles.forEach(role -> {
-				System.err.println(role.getName());
-			});*/
 			User admin= new User("youssouf djire","djireyoussouf1999@gmail.com", encoder.encode("12345678"),encoder.encode("12345678"));
 			admin.setRoles(roles);
 			userRepository.save(admin);
-			/*EntityManager entityManager = null;
-			Role role = new Role(ROLE_ADMIN);*/
-			//admin.addRole(role);
-			/*entityManager.persist(admin);
-			entityManager.persist(role);
-			entityManager.flush();*/
-			//user.getRoles().forEach(role -> { System.err.println(role.getName());});
 			User user = userRepository.save(admin);
 				Notification notification = new Notification();
 				notification.setDescriptionNotif("une nouvelle a été lancé !!!");
@@ -114,7 +109,12 @@ public class KilakodonApplication implements CommandLineRunner{
 				notification.setIdnotif(1L);
 
 				notificationRepository.save(notification);
-
+		}
+		if(kilakodonRepository.findAll().size() == 0){
+			Kilakodon kilakodon = new Kilakodon();
+			kilakodon.setLibelleKilakodon("libelle1");
+			System.err.println(kilakodon.getLibelleKilakodon());
+			kilakodonRepository.save(kilakodon);
 		}
 	}
 

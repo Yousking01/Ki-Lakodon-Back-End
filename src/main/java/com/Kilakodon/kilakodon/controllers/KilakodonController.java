@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/kilakodon")
+@RequestMapping("/api/auth/kilakodon")
 @AllArgsConstructor
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class KilakodonController {
@@ -34,7 +34,7 @@ public class KilakodonController {
     public Kilakodon modifier(@PathVariable Long idKilakodon, @RequestBody Kilakodon  kilakodon) {
         return kilakodonService.modifier(idKilakodon, kilakodon);
     }
-    @DeleteMapping("suprimer/{idsitepopulaire}")
+    @DeleteMapping("suprimer/{idKilakodon}")
     public String suprimer(@PathVariable Long idKilakodon) {
         return kilakodonService.suprimer(idKilakodon);
     }
