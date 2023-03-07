@@ -375,6 +375,8 @@ public class AnnonceController {
         } catch (MessagingException | IOException e) {
             return new ResponseEntity<>("Erreur lors de l'envoi de l'email.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+
     }
 
 
@@ -385,7 +387,13 @@ public class AnnonceController {
 
 
     }*/
+      @GetMapping("/lire/{idannonce}")
+      public Annonce lirebyId(@PathVariable("idannonce") Long idannonce) {
+          System.err.println(annonceRepository.getReferenceById(idannonce).getAnnonceur());
 
+          return annonceRepository.findById(idannonce).get();
+          //return siteWebPopulaireRepository.getReferenceById(id);
+      }
     @DeleteMapping("/suprimer/{idannonce}")
     public String suprimer(@PathVariable Long idannonce){
         return annonceService.supprimer(idannonce);

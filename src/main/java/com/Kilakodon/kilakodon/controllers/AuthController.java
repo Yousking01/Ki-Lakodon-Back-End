@@ -82,7 +82,10 @@ public class AuthController {
 
     @GetMapping("/role")
     public List<Role> getAllRole(){ return roleRepository.findAll();}
-
+   /* @GetMapping("/getbyId/{id}")
+    public List<Utilisateur> getbyId(@PathVariable("id") Long id){
+        return utilisateurRepository.findById(id).get();
+    }*/
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@RequestBody LoginRequest loginRequest) {
 

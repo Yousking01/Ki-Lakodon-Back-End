@@ -66,6 +66,8 @@ public class KilakodonApplication implements CommandLineRunner{
 
 	@Autowired
 	private PasswordEncoder encoder;
+	@Autowired
+	private EspacePubRepository espacePubRepository;
 
 
 	public static void main(String[] args) {
@@ -91,6 +93,20 @@ public class KilakodonApplication implements CommandLineRunner{
 		if (etatRepository.findAll().size() == 0) {
 			Etat etat1 = espacepubService.saveEtat(new Etat(null, ESPACE_PUB_DISPONIBLE));
 			Etat etat2 = espacepubService.saveEtat(new Etat(null, ESPACE_PUB_VENDU));
+		}
+		if (espacePubRepository.findAll().size() == 0) {
+			Set<Etat> etats= new HashSet();
+			Etat etat1= etatRepository.findByName(EspacePubEtat.ESPACE_PUB_DISPONIBLE);
+			System.err.println(etat1.getName());
+			etats.add(etat1);
+			EspacePub espacekilakodon= new EspacePub();
+			espacekilakodon.setNomespacepub("Kilakodon");
+			espacekilakodon.setDescription("Espace pour passer des annonces de publicités.");
+			espacekilakodon.setPrix(10000);
+			espacekilakodon.setEtat(etat1);
+			System.err.println(espacekilakodon.getDescription());
+			espacePubRepository.save(espacekilakodon);
+
 		}
 
 		if (userRepository.findAll().size() == 0){

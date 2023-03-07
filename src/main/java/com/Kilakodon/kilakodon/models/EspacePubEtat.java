@@ -7,7 +7,10 @@ import jakarta.persistence.OneToOne;
 
 public enum EspacePubEtat {
     ESPACE_PUB_DISPONIBLE,
-    ESPACE_PUB_VENDU
+    ESPACE_PUB_VENDU,
 
+    //ESPACE_PUB_INACTIF("Inactif");
+
+/**/
 }
 

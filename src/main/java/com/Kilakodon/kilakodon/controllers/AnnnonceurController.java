@@ -57,6 +57,19 @@ public class AnnnonceurController {
         return annonceurService.lire();
     }
 
+    /*@GetMapping("/lire/{id}")
+    public SiteWebPopulaire lirebyId(@PathVariable("id") Long id) {
+        System.err.println(siteWebPopulaireRepository.getReferenceById(id).getAnnonces());
+        System.out.println("je suis ici=========="+siteWebPopulaireRepository.findById(id).get().getURL());
+        return siteWebPopulaireRepository.findById(id).get();
+        //return siteWebPopulaireRepository.getReferenceById(id);
+    }*/
+    @GetMapping("/lireannonceurId/{id}")
+    public Annnonceur lirebyId(@PathVariable("id") Long id){
+        System.err.println((annnonceurRepository.getReferenceById(id).getAnnonce()));
+        return annnonceurRepository.findById(id).get();
+    }
+
    /* @DeleteMapping("/suprimer/{idannonce}/{id]")
     public String suprimer(@PathVariable Long id, @PathVariable Long idannonce) {
         return annonceurService.supprimerAnnonceurparAnnonc(idannonce);
